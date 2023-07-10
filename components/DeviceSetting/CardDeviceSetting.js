@@ -7,6 +7,7 @@ import { useRouter } from "next/router";
 import ModalEditarDeviceType from "./ModalEditarDevice";
 import ModalDeleteDevice from "./ModalConfirmDelete";
 import { checkSubmodule } from "../Permission/CheckSubmodules";
+import { FaPowerOff, FaBolt } from "react-icons/fa";
 const CardDeviceSetting = (props) => {
   const { title, ide, creationDate, status, deviceType, token, isAutomaticShutdown, isElectricityMonitoring } = props;
 
@@ -43,10 +44,10 @@ const CardDeviceSetting = (props) => {
 
   const changeToDelete = () => {
     setShowModal(false)
-    setTimeout(()=>{
+    setTimeout(() => {
       setShowModalDelete(true)
-    },500)
-    
+    }, 500)
+
   }
 
 
@@ -57,72 +58,61 @@ const CardDeviceSetting = (props) => {
     }
   }
 
-  const handleCopy = (token) =>{
+  const handleCopy = (token) => {
     navigator.clipboard.writeText(token)
     props.handleCopyToken()
   }
 
   const getChip = () => {
-     
-    if(status === true){
-      return(<div className="flex self-end h-[24px] w-[56px] mt-[12px] mr-[25px] bg-[#97BA35] rounded-[31px] text-white  leading-[18px] tracking-[-4%] text-[14px]">
-      <div className="self-center ml-[9px] font-semibold">
-        Activo
-      </div>
-  </div>)
-    }else if(status === false){
-      return(<div className="flex self-end h-[24px] w-[66px] mt-[12px] mr-[25px] bg-[#DA5151] rounded-[31px] text-white  leading-[18px] tracking-[-4%] text-[14px]">
-      <div className="self-center ml-[9px] font-semibold">
-        Inactivo
-      </div>
-    </div>)
+
+    if (status === true) {
+      return (<div className="flex self-end h-[24px] w-[56px] mt-[12px] mr-[25px] bg-[#97BA35] rounded-[31px] text-white  leading-[18px] tracking-[-4%] text-[14px]">
+        <div className="self-center ml-[9px] font-semibold">
+          Activo
+        </div>
+      </div>)
+    } else if (status === false) {
+      return (<div className="flex self-end h-[24px] w-[66px] mt-[12px] mr-[25px] bg-[#DA5151] rounded-[31px] text-white  leading-[18px] tracking-[-4%] text-[14px]">
+        <div className="self-center ml-[9px] font-semibold">
+          Inactivo
+        </div>
+      </div>)
     }
   }
 
   const getElectricity = () => {
-    if(isElectricityMonitoring === true){
-      return(<div className="flex self-end h-[24px] w-[66px] mt-[12px] mr-[25px] bg-[#97BA35] rounded-[31px] text-white  leading-[18px] tracking-[-4%] text-[14px]">
-      <div className="self-center ml-[9px] font-semibold">
-        Activo
-      </div>
-  </div>)
-    }else if(isElectricityMonitoring === false){
-      return(<div className="flex self-end h-[24px] w-[66px] mt-[12px] mr-[25px] bg-[#DA5151] rounded-[31px] text-white  leading-[18px] tracking-[-4%] text-[14px]">
-      <div className="self-center ml-[9px] font-semibold">
-        Inactivo
-      </div>
-    </div>)
+    if (isElectricityMonitoring === true) {
+      return (<div className="flex self-end h-[24px] w-[22px] mt-[12px] -ml-4 rounded-[31px] text-white  leading-[18px] tracking-[-4%] text-[14px]">
+        <div className="self-center font-semibold">
+        <FaBolt/>
+        </div>
+      </div>)
     }
   }
 
   const getAutomaticShutdown = () => {
-    console.log(isAutomaticShutdown)
-    if(isAutomaticShutdown === true){
-      return(<div className="flex self-center h-[24px] w-[66px] mt-[12px] mr-[25px] bg-[#97BA35] rounded-[31px] text-white  leading-[18px] tracking-[-4%] text-[14px]">
-      <div className="self-center ml-[9px] font-semibold">
-        Activo
-      </div>
-  </div>)
-    }else if(isAutomaticShutdown === false){
-      return(<div className="flex self-center h-[24px] w-[66px] mt-[12px] mr-[25px] bg-[#DA5151] rounded-[31px] text-white  leading-[18px] tracking-[-4%] text-[14px]">
-      <div className="self-center ml-[9px] font-semibold">
-        Inactivo
-      </div>
-    </div>)
+    if (isAutomaticShutdown === true) {
+      return (<div className="flex self-center h-[24px] w-[32px] mt-[12px] mr-[2px] rounded-[31px] text-white  leading-[18px] tracking-[-4%] text-[14px]">
+        <div className="self-center font-semibold">
+          <FaPowerOff/>
+        </div>
+      </div>)
     }
   }
 
 
   return (
     <div className='flex flex-col h-[232px] mx-[24px] m:mx-0 m:mr-[15px] m:w-[327px] bg-white/[0.15] rounded-[16px] mb-[11px] leading-[18px] tracking-[-2%]'>
-      {getChip()}
-      {getElectricity()}
-      {getAutomaticShutdown()}
-      
+      <div className="flex justify-end ">
+        {getChip()}
+        {getElectricity()}
+        {getAutomaticShutdown()}
+      </div>
+
       <div className='flex' >
-        
+
         <div className='flex-auto mt-[8px] ml-[24px] font-bold text-[20px] h-[30px] text-white'>{title}</div>
-        
+
       </div>
 
       <div className='mt-[4px] ml-[24px] text-[16px] ]'>
@@ -132,18 +122,18 @@ const CardDeviceSetting = (props) => {
 
       <div className="flex-auto ml-[24px] text-white/80 text-[12px] mt-[28px]  ">Creación: {dateUpdate}</div>
       <div className="flex flex-row justify-between mb-[18px] align-middle mt-[20px] ">
-        <div className="flex self-start bg-[#EA683F] text-white ml-[24px]  h-[32px] w-[121px] rounded-lg cursor-pointer "  onClick={()=>{handleCopy(token)}}>
-        <IoCopy className="self-center ml-[9px] "></IoCopy>
-        <div className="self-center text-[14px] bg- text-white leading-[18px] tracking-[-2%] ml-[4px]" >Copiar token</div>
+        <div className="flex self-start bg-[#EA683F] text-white ml-[24px]  h-[32px] w-[121px] rounded-lg cursor-pointer " onClick={() => { handleCopy(token) }}>
+          <IoCopy className="self-center ml-[9px] "></IoCopy>
+          <div className="self-center text-[14px] bg- text-white leading-[18px] tracking-[-2%] ml-[4px]" >Copiar token</div>
         </div>
-        
-        {checkSubmodule(props.submodules, "Modificar Dispositivo" ) && 
+
+        {checkSubmodule(props.submodules, "Modificar Dispositivo") &&
           <div>
             <div className='self-center text-[14px] flex mr-[24px] text-white cursor-pointer font-semibold'
               onClick={() => getDetails(ide)}> Editar <BsArrowRightShort className='mt-[4px] ml-[6px]' />
             </div>
-            <ModalDeleteDevice show={showModalDelete} onClose={()=> setShowModalDelete(false)} ide={ide} parentCallback={handleCallback}></ModalDeleteDevice>
-            <ModalEditarDeviceType show={showModal} onClose={() => setShowModal(false)} parentCallback={handleCallback} loading={loadingCard} details={details} active={status} showModalDelete={changeToDelete} submodules={props.submodules}/>
+            <ModalDeleteDevice show={showModalDelete} onClose={() => setShowModalDelete(false)} ide={ide} parentCallback={handleCallback}></ModalDeleteDevice>
+            <ModalEditarDeviceType show={showModal} onClose={() => setShowModal(false)} parentCallback={handleCallback} loading={loadingCard} details={details} active={status} isAutomaticShutdown={isAutomaticShutdown} isElectricityMonitoring={isElectricityMonitoring} showModalDelete={changeToDelete} submodules={props.submodules} />
           </div>
         }
       </div>

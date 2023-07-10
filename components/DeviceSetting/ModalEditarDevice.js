@@ -30,15 +30,19 @@ const ModalEditarDevice = (props) => {
             setSaveForm(false);
             const deviceType_name = event.deviceType_name;
             const deviceType_label = event.deviceType_label;
+            const deviceEntity_id = event.deviceEntity_id;
+            const electricity_id = event.electricity_id;
 
 
             const data = {
 
                 label: deviceType_label,
                 device_type: selectedDeviceType,
+                entity_id: deviceEntity_id,
+                electricity_id: electricity_id,
                 active: active,
                 isAutomaticShutdown: isAutomaticShutdown,
-                isElectricityMonitoring : isElectricityMonitoring,
+                isElectricityMonitoring: isElectricityMonitoring,
 
             }
 
@@ -100,6 +104,8 @@ const ModalEditarDevice = (props) => {
         setValue('deviceType_name', details.name, { shouldDirty: true })
         setValue('deviceType_label', details.label, { shouldDirty: true })
         setValue('device_typeId', details.device_type, { shouldDirty: true })
+        setValue('deviceEntity_id', details.entity_id, { shouldDirty: true })
+        setValue('electricity_id', details.electricity_id, { shouldDirty: true })
         clearErrors()
         onClose();
     }
@@ -114,12 +120,16 @@ const ModalEditarDevice = (props) => {
     }
     const handleCallbackAutomaticShutdown = (childData) => {
         setIsAutomaticShutdown(childData);
+        
     }
 
     const handleCallbackElectricityMonitoring = (childData) => {
         setIsElectricityMonitoring(childData);
+        if (childData === false && isAutomaticShutdown === true) {
+            setIsElectricityMonitoring(true);
+        } 
     }
-    
+
 
 
     return (
@@ -183,7 +193,7 @@ const ModalEditarDevice = (props) => {
 
                                     {/*Contenido*/}
                                     <form onSubmit={handleSubmit(onSubmit)} id="createdeviceType">
-                                        <div className="h-[335px]">
+                                        <div className="h-[335px] overflow-auto gt-scroll">
                                             <label className='text-white text-sm flex flex-col'>
                                                 <div className='mb-[8px] ml-[24px] font-bold leading-[19.07px] tracking-[-5%] text-[14px]'>Nombre de dispositivo:</div>
                                                 <input
@@ -225,8 +235,92 @@ const ModalEditarDevice = (props) => {
                                                             })}
                                                     </select>
                                                     {errors.device_typeId && <span className='text-xs text-hw-white ml-[24px]'>{errors.device_typeId.message}</span>}
-
                                                 </div>
+                                                
+                                                {checkSubmodule(props.submodules, 'Cambiar Apagado Automático') && (
+                                                    <div>
+                                                        <div className='mb-[8px] ml-[24px] font-bold leading-[19.07px] tracking-[-5%] text-[14px] mt-[18px]'>
+                                                            Apagado Remoto:
+                                                        </div>
+                                                        <div className='mt-[20px] flex'>
+                                                            <div className='ml-[24px] mr-[8px] font-semibold text-[16px] leading-[21.79px] tracking-[-5%] self-center text-white'>
+                                                                Inactivo
+                                                            </div>
+                                                            <HwSwitch parentCallback={handleCallbackAutomaticShutdown} status={isAutomaticShutdown} />
+                                                            <div className='self-center ml-[8px] text-[#84BD00] font-semibold text-[16px] leading-[21.79px] tracking-[-5%]'>
+                                                                Activo
+                                                            </div>
+                                                        </div>
+
+                                                        {isAutomaticShutdown && (
+                                                            <div>
+                                                                <div className='mb-[8px] ml-[24px] font-bold leading-[19.07px] tracking-[-5%] text-[14px] mt-[18px]'>
+                                                                    Entity ID:
+                                                                </div>
+                                                                <input
+                                                                    {...register('deviceEntity_id', {
+                                                                        required: { value: true, message: '* Campo Requerido' },
+                                                                    })}
+                                                                    name='deviceEntity_id'
+                                                                    type='text'
+                                                                    className='ml-[24px] border-[2px] border-white/20 bg-transparent rounded-[9px] w-[279px] h-[48px] pl-[16px] focus:outline-none focus-visible:ring-1 focus-visible:ring-white'
+                                                                    autoComplete='off'
+                                                                    defaultValue={details.entity_id}
+                                                                />
+
+                                                                {errors.deviceEntity_id && (
+                                                                    <span className='text-xs text-hw-white ml-[24px]'>{errors.deviceEntity_id.message}</span>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                {checkSubmodule(props.submodules, 'Cambiar Monitoreo de Electricidad') && (
+                                                    <div>
+                                                        <div className='mb-[8px] ml-[24px] font-bold leading-[19.07px] tracking-[-5%] text-[14px] mt-[18px]'>
+                                                            Monitorear Eléctricidad:
+                                                        </div>
+                                                        <div className='mt-[20px] flex'>
+                                                            <div className='ml-[24px] mr-[8px] font-semibold text-[16px] leading-[21.79px] tracking-[-5%] self-center text-white'>
+                                                                Inactivo
+                                                            </div>
+                                                            <HwSwitch parentCallback={handleCallbackElectricityMonitoring} status={isElectricityMonitoring} />
+                                                            <div className='self-center ml-[8px] text-[#84BD00] font-semibold text-[16px] leading-[21.79px] tracking-[-5%]'>
+                                                                Activo
+                                                            </div>
+                                                        </div>
+
+                                                        {isElectricityMonitoring && (
+                                                            <div>
+                                                                <div className='mb-[8px] ml-[24px] font-bold leading-[19.07px] tracking-[-5%] text-[14px] mt-[18px]'>
+                                                                    Electricity ID:
+                                                                </div>
+                                                                <input
+                                                                    {...register('electricity_id', {
+                                                                        required: { value: true, message: '* Campo Requerido' },
+                                                                    })}
+                                                                    name='electricity_id'
+                                                                    type='text'
+                                                                    className='ml-[24px] border-[2px] border-white/20 bg-transparent rounded-[9px] w-[279px] h-[48px] pl-[16px] focus:outline-none focus-visible:ring-1 focus-visible:ring-white'
+                                                                    autoComplete='off'
+                                                                    defaultValue={details.electricity_id}
+                                                                />
+
+                                                                {errors.electricity_id && (
+                                                                    <span className='text-xs text-hw-white ml-[24px]'>{errors.electricity_id.message}</span>
+                                                                )}
+                                                            </div>
+                                                        )}
+
+                                                        {!isElectricityMonitoring && isAutomaticShutdown && (
+                                                            <div className='ml-[24px] mt-[8px] text-xs text-hw-white'>                                                                
+                                                                * Es obligatorio tener electricidad para el apagado remoto.
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+
                                             </label>
                                         </div>
                                         <div className='flex mt-[20px]'>

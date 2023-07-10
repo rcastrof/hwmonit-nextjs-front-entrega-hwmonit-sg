@@ -1,5 +1,5 @@
 import Layout from '../../components/Layout/Layout'
-import { FaChevronLeft, FaChevronRight, FaTemperatureLow, FaFan } from 'react-icons/fa'
+import { FaChevronLeft, FaChevronRight, FaTemperatureLow, FaFan, FaBolt } from 'react-icons/fa'
 import { RiComputerFill, RiContactsBookFill, RiRouterFill } from 'react-icons/ri'
 import { HiOutlineRefresh } from 'react-icons/hi'
 import { useRouter } from "next/router";
@@ -20,6 +20,8 @@ import ModalPrinter from '../../components/DeviceDetails/ModalPrinter';
 import ModalFan from '../../components/DeviceDetails/FanDetail/ModalFan'
 import ModalTemperature from '../../components/DeviceDetails/TemperatureDetail/ModalTemperature';
 import { checkSubmodule } from '../../components/Permission/CheckSubmodules';
+import HwSwitch from '../../components/HwSwitch';
+import ModalElectricity from '../../components/DeviceDetails/ModalElectricity';
 
 export default function DeviceDetails(props) {
 
@@ -39,6 +41,7 @@ export default function DeviceDetails(props) {
     const [showModalPrinter, setShowModalPrinter] = useState(false);
     const [showModalTemperature, setShowModalTemperature] = useState(false);
     const [showModalFan, setShowModalFan] = useState(false);
+    const [showModalElectricity, setShowModalElectricity] = useState(false);
     const [monitorCtrl, setMonitorCtrl] = useState(0);
     const [printCtrl, setPrintCtrl] = useState(0);
     const [diskCtrl, setDiskCtrl] = useState(0)
@@ -46,6 +49,13 @@ export default function DeviceDetails(props) {
     const [gpuCtrl, setGpuCtrl] = useState(0)
     const [cpuCtrl, setCpuCtrl] = useState(0)
     const [lastUpdate, setLastUpdate] = useState('')
+    const [isLoadingElectricity, setIsLoadingElectricity] = useState(true)
+    const [voltage, setVoltage] = useState([]);
+    const [current, setCurrent] = useState([]);
+    const [power, setPower] = useState([]);
+    const [deviceState, setDeviceState] = useState(false);
+    const [isPowerLoading, setIsPowerLoading] = useState(true);
+
     const navigate = (url) => {
         push(url);
     }
@@ -60,7 +70,6 @@ export default function DeviceDetails(props) {
             fecthDevice(id);
         }
 
-
     }, [id])
 
     useEffect(() => {
@@ -72,12 +81,19 @@ export default function DeviceDetails(props) {
 
                 setLastUpdate(new Date(device[0].device_data.creation_date).toLocaleString("es-ES", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: '2-digit', second: '2-digit' }))
             } else {
-
                 setLastUpdate('')
             }
         }
-    }, [device])
 
+        if (device === null || device === undefined || Object.keys(device).length === 0) {
+            console.log('no device')
+        } else {
+            async function fetchPower() {
+                await getPower();
+            }
+            fetchPower();
+        }
+    }, [device])
 
 
     const getIcon = (status) => {
@@ -100,6 +116,7 @@ export default function DeviceDetails(props) {
         }
 
     }
+
     const getIconInformation = (status) => {
         if (status === 0) {
             return (<div className=" h-[24px] w-[24px] mx-[8px] bg-[#9EC431] rounded-full">
@@ -117,8 +134,6 @@ export default function DeviceDetails(props) {
             </div>)
         }
     }
-
-
 
     const getDevice = async (ide) => {
 
@@ -141,7 +156,6 @@ export default function DeviceDetails(props) {
                     resolve(error);
                 })
         });
-
 
         const error_cont_monitor = 0;
         const error_cont_print = 0;
@@ -208,17 +222,133 @@ export default function DeviceDetails(props) {
             setCpuCtrl(error_cont_cpu)
         }
         setDevice(response);
+        getDeviceStates();
         setLoading(false);
+    }
+
+    const getPower = async () => {
+
+        setIsPowerLoading(true);
+
+        await axios.get(`${process.env.HOME_ASSISTANT_STATES}sensor.${device[0].electricity_id}_energy_power`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.HOME_ASSISTANT_TOKEN}`
+            }
+        }).then(response => {
+            setPower(response.data);
+            setIsPowerLoading(false);
+
+        }).catch(error => {
+            if (error.response && error.response.status === 401) {
+                push('/');
+            }
+            console.error(error);
+        });
+    }
+
+    useEffect(() => {
+        if (power.state !== null) {
+            if (power.state >= 30) {
+                setDeviceState(true);
+            } else if (power.state < 30) {
+                setDeviceState(false);
+            }
+        }
+    }, [power.state])
 
 
+    const getElectricity = async () => {
+        setIsLoadingElectricity(true);
+        //voltaje
+        await axios.get(`${process.env.HOME_ASSISTANT_STATES}sensor.${device[0].electricity_id}_energy_voltage`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.HOME_ASSISTANT_TOKEN}`,
+            }
+        }).then(response => {
+            setVoltage(response.data);
+        }).catch(error => {
+            if (error.response && error.response.status === 401) {
+                push('/');
+            }
+            console.error(error);
+        });
+
+        //corriente
+        await axios.get(`${process.env.HOME_ASSISTANT_STATES}sensor.${device[0].electricity_id}_energy_current`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.HOME_ASSISTANT_TOKEN}`,
+            }
+        }).then(response => {
+            setCurrent(response.data);
+        }).catch(error => {
+            if (error.response && error.response.status === 401) {
+                push('/');
+            }
+            console.error(error);
+        });
+
+        //potencia
+        await axios.get(`${process.env.HOME_ASSISTANT_STATES}sensor.${device[0].electricity_id}_energy_power`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.HOME_ASSISTANT_TOKEN}`
+            }
+        }).then(response => {
+            setPower(response.data);
+        }).catch(error => {
+            if (error.response && error.response.status === 401) {
+                push('/');
+            }
+            console.error(error);
+        });
+        setIsLoadingElectricity(false);
+
+    }
+
+    async function getDeviceStates() {
+        try {
+            const deviceState = power.state >= 30 || false;
+            setDeviceState(deviceState);
+        } catch (error) {
+            if (error.response?.status === 401) {
+                push('/');
+            }
+        }
+    }
+
+    async function switchDeviceState() {
+        try {
+            const response = await axios.post(
+                `${process.env.HOME_ASSISTANT_SERVICES}switch/turn_on`,
+                {
+                    "entity_id": `switch.${device[0].entity_id}`
+                },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${process.env.HOME_ASSISTANT_TOKEN}`
+                    }
+                }
+            );            
+        } catch (error) {
+            if (error.response && error.response.status === 401) {
+                push('/');
+            }
+            console.error(error);
+        }
+    }
+
+    const handleCallback = (childData) => {
+        setDeviceState(childData);
     }
 
     return (
 
         <Layout refreshDate={lastUpdate} refreshText={lastUpdate !== '' ? 'Último reporte:' : ''} selected='bg-[#F3F3F3]' position="">
-
             <div className='flex-row flow-root'>
-
                 <div className='flex mt-[10px] mb-[12px] float-left'>
                     <div className="flex ml-[24px] cursor-pointer w-[80px]" onClick={() => { props.fromMap ? navigate("/content/mapsInfo") : navigate("/content/general") }}>
                         <div className='w-[24px] h-[24px] rounded-full bg-[#F25B3D]'>
@@ -238,12 +368,30 @@ export default function DeviceDetails(props) {
                 </div>
             </div>
 
-
-
             {device.length > 0 && !loading && <>
                 <div className='font-bold text-[32px] text-hw-white ml-[24px] mt-[12px] mb-[27px]'>
                     {device[0].label}
                 </div>
+
+                {
+                    isPowerLoading ? (
+                        <div className='flex justify-center mt-[24px]'>
+                            <Bars color="#FAFAFA" height={50} width={80} />
+                        </div>
+                    ) : (
+                        !isPowerLoading && (
+                            <div className='flex justify-end mr-10'>
+                                {device[0].isAutomaticShutdown === true && checkSubmodule(props.submodules, "Ver Apagado Automático") ? (
+                                    <div className='mt-[20px] flex' onClick={() => switchDeviceState()} >
+                                        <div className='ml-[24px] mr-[8px] font-semibold text-[16px] leading-[21.79px] tracking-[-5%] self-center text-white'>OFF</div>
+                                        <HwSwitch parentCallback={handleCallback} status={deviceState} />
+                                        <div className='self-center ml-[8px] text-[#84BD00] font-semibold text-[16px] leading-[21.79px] tracking-[-5%]'>ON</div>
+                                    </div>
+                                ) : null}
+                            </div>
+                        )
+                    )
+                }
 
                 <div className='flex flex-wrap mb-[24px] ml-[24px]'>
                     {device[1].map(
@@ -303,9 +451,7 @@ export default function DeviceDetails(props) {
                 </div>
 
                 <div className='flex flex-wrap '>
-
                     <div className='flex flex-wrap bg-white/[0.15] mb-[16px] mx-[24px] rounded-[16px] m:w-[325px] pb-[40px] flex-auto'>
-
                         <div className='flex mt-[32px] ml-[24px] mb-[12px] text-white  font-bold leading-[18px] tracking-[-2%] text-[18px]'>Información</div>
 
                         {!checkSubmodule(props.submodules, "Ver Discos") && !checkSubmodule(props.submodules, "Ver GPU") && !checkSubmodule(props.submodules, "Ver Red") && !checkSubmodule(props.submodules, "Ver Memoria RAM") && !checkSubmodule(props.submodules, "Ver CPU") && !checkSubmodule(props.submodules, "Ver Contacto") &&
@@ -426,7 +572,7 @@ export default function DeviceDetails(props) {
                                         <div className='text-[14px] text-white ml-[8px]  leading-[18px] flex self-center'>CPU</div>
                                     </div>
                                     {getIconInformation(cpuCtrl)}
-                                    <FaChevronRight className=' h-[10px] w-[10px] mr-[23px] text-white justify-end' />                              
+                                    <FaChevronRight className=' h-[10px] w-[10px] mr-[23px] text-white justify-end' />
                                 </div>
                                 <ModalCPU show={showModalCPU} onClose={() => setShowModalCPU(false)} details={(device[0].device_data.cpu_info !== undefined && device[0].device_data.cpu_info !== null) ? device[0].device_data.cpu_info : null} />
                             </div>}
@@ -445,8 +591,6 @@ export default function DeviceDetails(props) {
                                 </div>
                                 <ModalRed show={showModalRed} onClose={() => setShowModalRed(false)} details={(device[0].device_data.red_info !== undefined && device[0].device_data.red_info !== null) ? device[0].device_data.red_info : null} />
                             </div>}
-
-                            
 
                             {checkSubmodule(props.submodules, "Ver Temperatura") && <div className='flex ml-[24px] mt-[8px]'>
                                 <div className='h-[56px] select-none bg-[#F5F5F5]/20 flex min-w-fit items-center rounded-[16px] mb-[8px] mr-[8px] w-[279px] flex-row cursor-pointer' onClick={() => setShowModalTemperature(true)}>
@@ -474,8 +618,8 @@ export default function DeviceDetails(props) {
                                     <FaChevronRight className=' h-[10px] w-[10px] mr-[23px] text-white justify-end' />
                                 </div>
                                 <ModalFan show={showModalFan} onClose={() => setShowModalFan(false)} details={(device[0].device_data.fan_info !== undefined && device[0].device_data.fan_info !== null) ? device[0].device_data.fan_info : null} />
-                                
-                            </div>} 
+
+                            </div>}
 
                             {checkSubmodule(props.submodules, "Ver Contacto") && <div className='flex ml-[24px] mt-[8px]'>
                                 <div className='h-[56px] select-none bg-[#F5F5F5]/20 flex min-w-fit items-center rounded-[16px] mb-[8px] mr-[8px] w-[279px] flex-row cursor-pointer' onClick={() => setShowModalContact(true)}>
@@ -489,17 +633,29 @@ export default function DeviceDetails(props) {
                                     <FaChevronRight className=' h-[10px] w-[10px] mr-[23px] text-white justify-end' />
                                 </div>
                                 <ModalContact show={showModalContact} onClose={() => setShowModalContact(false)} details={(device[0].branch_id.contact !== undefined && device[0].branch_id.contact !== null) ? device[0].branch_id.contact : null} />
-                            </div>}    
+                            </div>}
+
+                            {device[0].isElectricityMonitoring === true && checkSubmodule(props.submodules, "Ver Monitoreo de Electricidad") ? (
+                                <div className='flex ml-[24px] mt-[8px]' >
+                                    <div className='h-[56px] select-none bg-[#F5F5F5]/20 flex min-w-fit items-center rounded-[16px] mb-[8px] mr-[8px] w-[279px] flex-row cursor-pointer' onClick={() => setShowModalElectricity(true)}>
+                                        <div className='flex flex-auto' onClick={() => getElectricity()}>
+                                            <div className="h-[32px] w-[32px] mx-[8px] bg-[#EA683F] rounded-full ml-[16px] flex">
+                                                <FaBolt className='h-[20px] w-[20px] ml-[6px] text-white self-center' />
+                                            </div>
+                                            <div className='text-[14px] text-white ml-[8px] leading-[18px] flex self-center'>Electricidad</div>
+                                        </div>
+                                        <FaChevronRight className='h-[10px] w-[10px] mr-[23px] text-white justify-end' />
+                                    </div>
+                                    <ModalElectricity show={showModalElectricity} voltage={voltage} current={current} power={power} isLoadingElectricity={isLoadingElectricity} onClose={() => setShowModalElectricity(false)} details={(device[0]?.branch_id?.contact !== undefined && device[0]?.branch_id?.contact !== null) ? device[0].branch_id.contact : null} />
+                                </div>
+                            ) : null
+                            }
 
                         </div>
-
                     </div>
-
                 </div>
-
             </>
             }
-
 
             {loading &&
                 <div className='flex justify-center mt-[24px]'>
@@ -507,9 +663,7 @@ export default function DeviceDetails(props) {
                 </div>
             }
 
-
         </Layout>
-
     )
 }
 
@@ -540,8 +694,11 @@ export async function getServerSideProps(context) {
 
     const firstLogin = async () => {
         const firstLoginData = await new Promise((resolve, reject) => {
-            axios.get(`${process.env.REACT_APP_API_URL}checkFirstLogin/`, { withCredentials: true, headers: {
-                Cookie: context.req.headers.cookie}})
+            axios.get(`${process.env.REACT_APP_API_URL}checkFirstLogin/`, {
+                withCredentials: true, headers: {
+                    Cookie: context.req.headers.cookie
+                }
+            })
                 .then(response => {
                     resolve(response.data);
                 }).catch(error => {
@@ -557,13 +714,13 @@ export async function getServerSideProps(context) {
 
     let loginData = await firstLogin()
 
-    if(loginData.user.firstLogin === false){
+    if (loginData.user.firstLogin === false) {
         return {
             redirect: {
-              permanent: false,
-              destination: "/firstLogin",
+                permanent: false,
+                destination: "/firstLogin",
             },
-            props:{},
+            props: {},
         };
     }
 

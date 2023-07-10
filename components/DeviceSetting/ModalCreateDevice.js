@@ -26,14 +26,18 @@ const ModalCreateDeviceType = (props) => {
             setSaveForm(false);
             const deviceType_name = event.deviceType_name;
             const deviceType_label = event.deviceType_label;
-            
+            const deviceEntity_id = event.deviceEntity_id;
+            const electricity_id = event.electricity_id;
+
             const data = {
                 name: deviceType_name,
                 label: deviceType_label,
+                entity_id: deviceEntity_id,
+                electricity_id: electricity_id,
                 device_type: selectedDeviceType,
                 active: active,
                 isAutomaticShutdown: isAutomaticShutdown,
-                isElectricityMonitoring : isElectricityMonitoring,
+                isElectricityMonitoring: isElectricityMonitoring,
             }
 
             const listDetails = await new Promise((resolve, reject) => {
@@ -49,14 +53,14 @@ const ModalCreateDeviceType = (props) => {
             });
 
             props.parentCallback({ state: true, status: listDetails.status, message: "save" });
-            reset({ deviceType_name: "", deviceType_label: "" });
+            reset({ deviceType_name: "", deviceType_label: "", deviceEntity_id: "", electricity_id: "" });
             setSaveForm(true);
             onClose();
         }
     };
 
     const closeModal = () => {
-        reset({ deviceType_name: "", deviceType_label: "", device_typeId: '' });
+        reset({ deviceType_name: "", deviceType_label: "", device_typeId: '', deviceEntity_id: "", electricity_id: "" });
         clearErrors()
         onClose();
     }
@@ -71,6 +75,9 @@ const ModalCreateDeviceType = (props) => {
 
     const handleCallbackElectricityMonitoring = (childData) => {
         setIsElectricityMonitoring(childData);
+        if (childData === false && isAutomaticShutdown === true) {
+            setIsElectricityMonitoring(true);
+        } 
     }
 
 
@@ -211,60 +218,106 @@ const ModalCreateDeviceType = (props) => {
                                                 {errors.device_typeId && <span className='text-xs text-hw-white ml-[24px]'>{errors.device_typeId.message}</span>}
                                             </div>
 
-                                            <div className='mb-[8px] ml-[24px] font-bold leading-[19.07px] tracking-[-5%] text-[14px] mt-[18px]'>Apagado Automático:</div>
+                                            <div className='mb-[8px] ml-[24px] font-bold leading-[19.07px] tracking-[-5%] text-[14px] mt-[18px]'>
+                                                Apagado Remoto:
+                                            </div>
                                             <div className='mt-[20px] flex'>
-                                                <div className='ml-[24px] mr-[8px] text-[16px] leading-[21.79px] tracking-[-5%] self-center text-white'>Inactivo</div>
+                                                <div className='ml-[24px] mr-[8px] text-[16px] leading-[21.79px] tracking-[-5%] self-center text-white'>
+                                                    Inactivo
+                                                </div>
                                                 <HwSwitch parentCallback={handleCallbackAutomaticShutdown} />
-                                                <div className='self-center ml-[8px] text-[#84BD00] font-semibold  text-[16px] leading-[21.79px] tracking-[-5%]'>Activo</div>
+                                                <div className='self-center ml-[8px] text-[#84BD00] font-semibold text-[16px] leading-[21.79px] tracking-[-5%]'>
+                                                    Activo
+                                                </div>
                                             </div>
-{/* 
-                                            <div className='mb-[8px] ml-[24px] font-bold leading-[19.07px] tracking-[-5%] text-[14px] mt-[18px]'>Entity ID:</div>
-                                            <input
-                                                {...register("deviceType_label", {
-                                                    required: { value: true, message: "* Campo Requerido" },
-                                                })} name='deviceType_label' type="text"
-                                                className="ml-[24px] border-[2px] border-white/20 bg-transparent rounded-[9px] w-[279px] h-[48px] pl-[16px] focus:outline-none focus-visible:ring-1 focus-visible:ring-white"
-                                                autoComplete='off' />
 
-                                            {errors.deviceType_label && <span className='text-xs text-hw-white ml-[24px]'>{errors.deviceType_label.message}</span>}
+                                            {isAutomaticShutdown && (
+                                                <div>
+                                                    <div className='mb-[8px] ml-[24px] font-bold leading-[19.07px] tracking-[-5%] text-[14px] mt-[18px]'>
+                                                        Entity ID:
+                                                    </div>
+                                                    <input
+                                                        {...register('deviceEntity_id', {
+                                                            required: { value: true, message: '* Campo Requerido' },
+                                                        })}
+                                                        name='deviceEntity_id'
+                                                        type='text'
+                                                        className='ml-[24px] border-[2px] border-white/20 bg-transparent rounded-[9px] w-[279px] h-[48px] pl-[16px] focus:outline-none focus-visible:ring-1 focus-visible:ring-white'
+                                                        autoComplete='off'
+                                                    />
 
-                                             */}
+                                                    {errors.deviceEntity_id && (
+                                                        <span className='text-xs text-hw-white ml-[24px]'>{errors.deviceEntity_id.message}</span>
+                                                    )}
+                                                </div>
+                                            )}
 
-                                            <div className='mb-[8px] ml-[24px] font-bold leading-[19.07px] tracking-[-5%] text-[14px] mt-[18px]'>Monitorear Eléctricidad:</div>
+                                            <div className='mb-[8px] ml-[24px] font-bold leading-[19.07px] tracking-[-5%] text-[14px] mt-[18px]'>
+                                                Monitorear Eléctricidad:
+                                            </div>
                                             <div className='mt-[20px] flex'>
-                                                <div className='ml-[24px] mr-[8px] text-[16px] leading-[21.79px] tracking-[-5%] self-center text-white'>Inactivo</div>
+                                                <div className='ml-[24px] mr-[8px] text-[16px] leading-[21.79px] tracking-[-5%] self-center text-white'>
+                                                    Inactivo
+                                                </div>
                                                 <HwSwitch parentCallback={handleCallbackElectricityMonitoring} />
-                                                <div className='self-center ml-[8px] text-[#84BD00] font-semibold  text-[16px] leading-[21.79px] tracking-[-5%]'>Activo</div>
+                                                <div className='self-center ml-[8px] text-[#84BD00] font-semibold text-[16px] leading-[21.79px] tracking-[-5%]'>
+                                                    Activo
+                                                </div>
                                             </div>
 
+                                            {isElectricityMonitoring && (
+                                                <div>
+                                                    <div className='mb-[8px] ml-[24px] font-bold leading-[19.07px] tracking-[-5%] text-[14px] mt-[18px]'>
+                                                        Electricity ID:
+                                                    </div>
+                                                    <input
+                                                        {...register('electricity_id', {
+                                                            required: { value: true, message: '* Campo Requerido' },
+                                                        })}
+                                                        name='electricity_id'
+                                                        type='text'
+                                                        className='ml-[24px] border-[2px] border-white/20 bg-transparent rounded-[9px] w-[279px] h-[48px] pl-[16px] focus:outline-none focus-visible:ring-1 focus-visible:ring-white'
+                                                        autoComplete='off'
+                                                    />
+
+                                                    {errors.electricity_id && (
+                                                        <span className='text-xs text-hw-white ml-[24px]'>{errors.electricity_id.message}</span>
+                                                    )}
+                                                </div>
+                                            )}
+                                            {!isElectricityMonitoring && isAutomaticShutdown && (
+                                                <div className='ml-[24px] mt-[8px] text-xs text-hw-white'>
+                                                    * Es obligatorio tener electricidad para el apagado remoto.
+                                                </div>
+                                            )}
                                         </label>
 
                                     </div>
                                     <div className='flex mt-[20px]'>
-                                                <div
-                                                    className="h-[48px] w-[135px] border-[2px] border-white/20 bg-transparent rounded-[10px] ml-[24px] mr-[9px] text-[16px]  leading-[22px] tracking-[-1px]"
-                                                    onClick={() => closeModal()}
-                                                >
+                                        <div
+                                            className="h-[48px] w-[135px] border-[2px] border-white/20 bg-transparent rounded-[10px] ml-[24px] mr-[9px] text-[16px]  leading-[22px] tracking-[-1px]"
+                                            onClick={() => closeModal()}
+                                        >
 
-                                                    <div className='flex ml-[20px] cursor-pointer'>
-                                                        <div className="flex justify-center items-center w-[24px] h-[24px] rounded-full bg-white/20 mt-[10px]">
-                                                            <RiCloseFill className='w-[14px] h-[14px] text-white' aria-hidden="true" />
-                                                        </div>
-                                                        <div className='text-white ml-[8px] mt-[11px]'>Cancelar</div>
-                                                    </div>
-
+                                            <div className='flex ml-[20px] cursor-pointer'>
+                                                <div className="flex justify-center items-center w-[24px] h-[24px] rounded-full bg-white/20 mt-[10px]">
+                                                    <RiCloseFill className='w-[14px] h-[14px] text-white' aria-hidden="true" />
                                                 </div>
-                                                <button type="submit"
-                                                    className="h-[48px] w-[135px] bg-[#EA683F] rounded-[10px] mr-[24px] font-bold text-[16px] leading-[22px] tracking-[-1px] ">
-                                                    <div className='flex ml-[20px]'>
-                                                        <div className="flex justify-center items-center w-[24px] h-[24px] rounded-full bg-white/25">
-                                                            <BsCheck className='w-[20px] h-[20px] text-white' aria-hidden="true" />
-                                                        </div>
-                                                        <div className='text-white ml-[8px] font-bold'>Guardar</div>
-                                                    </div>
-                                                </button>
-
+                                                <div className='text-white ml-[8px] mt-[11px]'>Cancelar</div>
                                             </div>
+
+                                        </div>
+                                        <button type="submit"
+                                            className="h-[48px] w-[135px] bg-[#EA683F] rounded-[10px] mr-[24px] font-bold text-[16px] leading-[22px] tracking-[-1px] ">
+                                            <div className='flex ml-[20px]'>
+                                                <div className="flex justify-center items-center w-[24px] h-[24px] rounded-full bg-white/25">
+                                                    <BsCheck className='w-[20px] h-[20px] text-white' aria-hidden="true" />
+                                                </div>
+                                                <div className='text-white ml-[8px] font-bold'>Guardar</div>
+                                            </div>
+                                        </button>
+
+                                    </div>
 
                                 </form>
 

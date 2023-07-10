@@ -6,8 +6,12 @@ import CardModalGeneral from './CardModalGeneral'
 import {Bars} from 'react-loader-spinner';
 const ModalGeneral = ( props ) =>  {
 
+
+
     const { show, onClose, details, loading, title } = props;
     const cancelButtonRef = useRef(null);
+
+    
 
     return (
        
@@ -71,7 +75,6 @@ const ModalGeneral = ( props ) =>  {
 
                             { !loading &&
                                 details.map((detail) => {
-
                                     if(detail.description.description_error === "Sucursal sin dispositivos"){
                                        return( <div className='flex-wrap text-center'>
                                             <span className='text-[24px]'>😱</span> <span className='text-[16px] font-semibold text-hw-white'> Sucursal sin dispositivos asignados o sin reportar ... </span>
